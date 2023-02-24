@@ -1,39 +1,6 @@
-#!/usr/bin/php7
-<?php
-
-if (PHP_MAJOR_VERSION >= 7) {
-	#error_reporting(E_ALL ^ (E_DEPRECATED | E_USER_DEPRECATED | E_NOTICE | E_STRICT  | E_CORE_ERROR | E_PARSE | E_USER_NOTICE | E_RECOVERABLE_ERROR | E_WARNING | E_USER_WARNING | E_USER_ERROR | E_COMPILE_WARNING | E_CORE_WARNING | E_ERROR));
-	#error_reporting(E_ALL ^ (E_DEPRECATED | E_USER_DEPRECATED | E_ERROR));
-	error_reporting(E_ALL & ~E_NOTICE);
-}
-
-ini_set('memory_limit','512M');
-ini_set('max_execution_time', '0');
-
-$basedir	= dirname(realpath(__FILE__),3);
-
-set_include_path($basedir."/WS-UMEE-DEV/");
-include("global_function.php");
-// include("global_variables.php");
-include("PHP_CONNECTION/connection_neo.php");
-
-include("FIXING/array_kodewilayah.php");
-
-if(!$DBO->dbi) {
-	echo "DB  not connect to ".$dbName."!";
-	exit;
-} else {
-	$Ymd = date('Y-m-d');
+$Ymd = date('Y-m-d');
 	$Y = date('Y');
 	// $Y = '2017';
-
-	// $paramsDemografi = array(
-	// 	"cod" => $Ymd,
-	// 	"year" => $Y,
-	// 	"query" => "SET umi.cod = '2023-02-23'; SELECT tahun, bulan, CASE WHEN kodepenyalur like '010%' THEN 'BAV' ELSE linkage END AS lkbb, provinsi, kabkota, linkage, jk, skema, groupsektor, sektor, jenisakad, CASE WHEN nilaiakad < 2500001 THEN '0 - 2.500.000' WHEN nilaiakad < 5000001 THEN '2.500.001 - 5.000.000' WHEN nilaiakad < 7500001 THEN '5.000.001 - 7.500.000' WHEN nilaiakad < 10000001 THEN '7.500.001 - 10.000.000' ELSE '> 10.000.000' END AS pembiayaan, CASE WHEN usia < 20 THEN '< 20' WHEN usia >= 20 AND usia < 30 THEN '20-29' WHEN usia >= 30 AND usia < 40 THEN '30-39' WHEN usia >= 40 AND usia < 50 THEN '40-49' ELSE '>=50' END AS usia, CASE WHEN (SELECT ((DATE_PART('year', tanggaljatuhtempo) - DATE_PART('year', tanggalakad)) * 12 + DATE_PART('month', tanggaljatuhtempo)- DATE_PART('month', tanggalakad))) < 6 THEN '< 6 bulan' WHEN (SELECT ((DATE_PART('year', tanggaljatuhtempo) - DATE_PART('year', tanggalakad)) * 12 + DATE_PART('month', tanggaljatuhtempo)- DATE_PART('month', tanggalakad))) <= 12 AND (SELECT ((DATE_PART('year', tanggaljatuhtempo) - DATE_PART('year', tanggalakad)) * 12 + DATE_PART('month', tanggaljatuhtempo)- DATE_PART('month', tanggalakad))) >= 6 THEN '6-12 bulan' WHEN (SELECT ((DATE_PART('year', tanggaljatuhtempo) - DATE_PART('year', tanggalakad)) * 12 + DATE_PART('month', tanggaljatuhtempo)- DATE_PART('month', tanggalakad))) > 12 THEN '> 12 bulan' END AS tenor, COUNT(noakad) AS debitur, SUM(nilaiakad) AS penyaluran FROM sikpumi.v_report where tahun = '2023' GROUP BY 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 ORDER BY 1, 2, 3, 4, 5"
-	// );
-
-	// $resDemografi = fetchData('POST', 'http://192.168.10.21:5001/queryexe',$paramsDemografi);
 
 	$yData = $argv['2'];
 
@@ -49,7 +16,7 @@ if(!$DBO->dbi) {
 	";
 
 	$resWS = $DBO->query($sqlWS);
-// dipantek
+
 	$ttlrows = 0;
 	while($rowWS = $DBO->fetch_assoc($resWS)) {
 
@@ -366,6 +333,11 @@ if(!$DBO->dbi) {
 			$sqlUpd = "UPDATE $tbl_ws SET status = '1' WHERE type = 'ws_penyaluran_harian' ";
 			$execUpdate = $DBO->query($sqlUpd);
 
+			$params = array(
+				"query" => ""
+			);
+
+			$resDemografi = fetchData('POST', 'http://192.168.10.21:5001/demografi',$params);
 
 			#UPDATE SERVICE UPDATE DEMOGRASI TELAH SELESAI
 			$sqlUpd = "UPDATE $tbl_ws SET status = '0' WHERE type = 'ws_penyaluran_harian' ";
@@ -377,8 +349,3 @@ if(!$DBO->dbi) {
 		// $sqlUpd = "UPDATE $tbl_ws SET status = '0' ";
 		// $execUpdate = $DBO->query($sqlUpd);		
 	}
-	
-}
-
-exit;
-?>
